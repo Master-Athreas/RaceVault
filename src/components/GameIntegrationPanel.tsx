@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { signMessage } from '../utils/web3';
+import { useGameIntegration } from '../context/GameIntegrationContext';
+import CarCard from './CarCard';
 import { 
   Gamepad2, 
   Wifi, 
@@ -17,47 +18,36 @@ interface GameIntegrationPanelProps {
 }
 
 const GameIntegrationPanel: React.FC<GameIntegrationPanelProps> = ({ user }) => {
-  const [isGameConnected, setIsGameConnected] = useState(false);
-  const [gameStatus, setGameStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'syncing'>('disconnected');
+  const {
+    isGameConnected,
+    gameStatus,
+    syncCode,
+    inGameId,
+    connectGame,
+    disconnectGame,
+    requestPairing,
+    syncAssets,
+  } = useGameIntegration();
   const [lastSync, setLastSync] = useState<Date | null>(null);
-  const [syncCode, setSyncCode] = useState<string | null>(null);
 
-  const requestPairing = async () => {
+  const handlePairing = async () => {
     if (!user) return;
-    const code = Math.random().toString(36).substr(2, 6).toUpperCase();
-    const message = `/sync ${code}`;
-    const signature = await signMessage(user.address, message);
-    if (signature) {
-      setSyncCode(code);
-    }
+    await requestPairing(user.address);
   };
 
   const handleGameConnection = async () => {
     if (isGameConnected) {
-      setGameStatus('disconnected');
-      setIsGameConnected(false);
-      setSyncCode(null);
+      disconnectGame();
       return;
     }
-
-    setGameStatus('connecting');
-    
-    // Simulate connection process
-    setTimeout(() => {
-      setGameStatus('connected');
-      setIsGameConnected(true);
-      setLastSync(new Date());
-    }, 2000);
+    await connectGame();
+    setLastSync(new Date());
   };
 
   const handleSync = async () => {
-    setGameStatus('syncing');
-    
-    // Simulate sync process
-    setTimeout(() => {
-      setGameStatus('connected');
-      setLastSync(new Date());
-    }, 1500);
+    if (!user) return;
+    await syncAssets(user.address);
+    setLastSync(new Date());
   };
 
   const getStatusColor = () => {
@@ -149,7 +139,7 @@ const GameIntegrationPanel: React.FC<GameIntegrationPanelProps> = ({ user }) => 
                 <RefreshCw className={`h-4 w-4 ${gameStatus === 'syncing' ? 'animate-spin' : ''}`} />
               </button>
               <button
-                onClick={requestPairing}
+                onClick={handlePairing}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg font-semibold transition-colors duration-200"
               >
                 Pair with Game
@@ -185,23 +175,35 @@ const GameIntegrationPanel: React.FC<GameIntegrationPanelProps> = ({ user }) => 
           </div>
 
           {/* Game Account Info */}
-          {user && (
+          {inGameId && user && (
             <div className="bg-gray-750 rounded-lg p-4">
-              <h4 className="text-white font-semibold mb-2">Connected Account</h4>
+              <h4 className="text-white font-semibold mb-2">Linked Account</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
+                  <span className="text-gray-400">Wallet:</span>
+                  <span className="text-white">{user.address}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-400">Player ID:</span>
-                  <span className="text-white">RaceVault_{user.address.slice(-6)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Game Level:</span>
-                  <span className="text-white">Pro Racer (Level 42)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Total Races:</span>
-                  <span className="text-white">1,247</span>
+                  <span className="text-white">{inGameId}</span>
                 </div>
               </div>
+              <div className="mt-4">
+                <button
+                  onClick={handleSync}
+                  disabled={gameStatus === 'syncing'}
+                  className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Sync Assets
+                </button>
+              </div>
+              {user.ownedAssets.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  {user.ownedAssets.map((asset: any) => (
+                    <CarCard key={asset.id} car={asset} showBuyButton={false} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -222,5 +224,5 @@ const GameIntegrationPanel: React.FC<GameIntegrationPanelProps> = ({ user }) => 
     </div>
   );
 };
-
 export default GameIntegrationPanel;
+
