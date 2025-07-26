@@ -1,10 +1,10 @@
 {
   "functions": {
     "api/init-sync.ts": {
-      "runtime": "vercel/node"
+      "runtime": "nodejs18.x"
     },
     "api/verify-sync.ts": {
-      "runtime": "vercel/node"
+      "runtime": "nodejs18.x"
     }
   }
 }
