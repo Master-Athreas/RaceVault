@@ -54,17 +54,28 @@ export const GameIntegrationProvider = ({ children }: { children: ReactNode }) =
     const message = `/sync ${code}`;
     const sig = await signMessage(wallet, message);
     if (!sig) return;
+
     setState(prev => ({ ...prev, syncCode: code, wallet, gameStatus: 'connecting' }));
+
+    const playerId = `RaceVault_${wallet.slice(-8).toUpperCase()}`;
     setTimeout(async () => {
       try {
-        const res = await fetch('/api/verify-sync');
+        const res = await fetch('/api/verify-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, playerId })
+        });
+
         if (res.ok) {
-          setState(prev => ({
-            ...prev,
-            syncCode: null,
-            gameStatus: 'connected',
-            inGameId: `RaceVault_${wallet.slice(-8).toUpperCase()}`
-          }));
+          const data = await res.json();
+          if (data.success) {
+            setState(prev => ({
+              ...prev,
+              syncCode: null,
+              gameStatus: 'connected',
+              inGameId: playerId
+            }));
+          }
         }
       } catch (err) {
         console.error(err);
@@ -99,4 +110,3 @@ export const useGameIntegration = () => {
   if (!ctx) throw new Error('useGameIntegration must be used within GameIntegrationProvider');
   return ctx;
 };
-
