@@ -4,6 +4,7 @@ export interface PendingData {
   wallet: string;
   balance: number;
   vehicles: any[];
+  expiresAt?: number;
 }
 
 // In-memory map of pending sync codes
@@ -21,11 +22,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // For now populate with fake balance and vehicles
+  // For now populate with fake balance and vehicles and set expiry
   pendingCodes.set(code, {
     wallet,
-    balance: 1000,
-    vehicles: [],
+    balance: 420,
+    vehicles: ['SupraNFT', 'RX7NFT'],
+    expiresAt: Date.now() + 5 * 60 * 1000,
   });
 
   res.json({ success: true });
