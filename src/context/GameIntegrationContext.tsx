@@ -31,12 +31,17 @@ const GameIntegrationContext = createContext<GameIntegrationContextType | undefi
 
 export const GameIntegrationProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<GameIntegrationState>(() => {
-    const stored = localStorage.getItem('gameIntegration');
-    return stored ? { ...defaultState, ...JSON.parse(stored) } : defaultState;
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('gameIntegration');
+      return stored ? { ...defaultState, ...JSON.parse(stored) } : defaultState;
+    }
+    return defaultState;
   });
 
   useEffect(() => {
-    localStorage.setItem('gameIntegration', JSON.stringify(state));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gameIntegration', JSON.stringify(state));
+    }
   }, [state]);
 
   const connectGame = async () => {
