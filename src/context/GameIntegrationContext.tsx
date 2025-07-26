@@ -57,6 +57,16 @@ export const GameIntegrationProvider = ({ children }: { children: ReactNode }) =
 
     setState(prev => ({ ...prev, syncCode: code, wallet, gameStatus: 'connecting' }));
 
+    try {
+      await fetch('/api/init-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, wallet })
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
     const playerId = `RaceVault_${wallet.slice(-8).toUpperCase()}`;
     setTimeout(async () => {
       try {

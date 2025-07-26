@@ -19,6 +19,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  if (data.expiresAt && Date.now() > data.expiresAt) {
+    pendingCodes.delete(code);
+    res.status(410).json({ success: false, error: 'Code expired' });
+    return;
+  }
+
   pendingCodes.delete(code);
   res.json({
     success: true,
