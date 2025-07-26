@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/verify-sync.ts": {
+      "runtime": "vercel/node"
+    }
+  }
+}
