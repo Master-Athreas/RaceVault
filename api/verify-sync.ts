@@ -15,7 +15,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   const data = pendingCodes.get(code);
   if (!data) {
-    res.json({ success: false });
+    res.status(404).json({ success: false, error: 'Code not found' });
     return;
   }
 
