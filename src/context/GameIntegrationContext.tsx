@@ -68,13 +68,20 @@ export const GameIntegrationProvider = ({ children }: { children: ReactNode }) =
     }
 
     const playerId = `RaceVault_${wallet.slice(-8).toUpperCase()}`;
-    setTimeout(async () => {
+    const start = Date.now();
+
+    const poll = async () => {
       try {
         const res = await fetch('/api/verify-sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code, playerId })
         });
+
+        if (res.status === 410) {
+          setState(prev => ({ ...prev, syncCode: null, gameStatus: 'connected' }));
+          return;
+        }
 
         if (res.ok) {
           const data = await res.json();
@@ -85,12 +92,21 @@ export const GameIntegrationProvider = ({ children }: { children: ReactNode }) =
               gameStatus: 'connected',
               inGameId: playerId
             }));
+            return;
           }
         }
       } catch (err) {
         console.error(err);
       }
-    }, 3000);
+
+      if (Date.now() - start < 5 * 60 * 1000) {
+        setTimeout(poll, 3000);
+      } else {
+        setState(prev => ({ ...prev, syncCode: null, gameStatus: 'connected' }));
+      }
+    };
+
+    poll();
   };
 
   const syncAssets = async (wallet: string) => {
