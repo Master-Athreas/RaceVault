@@ -1,4 +1,4 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export interface PendingData {
   wallet: string;
@@ -10,7 +10,7 @@ export interface PendingData {
 // Simple in-memory store for pending sync codes
 export const pendingCodes = new Map<string, PendingData>();
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     res.status(405).json({ success: false });
     return;
