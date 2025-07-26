@@ -1,7 +1,7 @@
 {
   "functions": {
-    "api/verify-sync.ts": {
-      "runtime": "vercel-node@4"
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
     }
   }
 }

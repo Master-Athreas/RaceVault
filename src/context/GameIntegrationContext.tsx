@@ -54,7 +54,9 @@ export const GameIntegrationProvider = ({ children }: { children: ReactNode }) =
     const message = `/sync ${code}`;
     const sig = await signMessage(wallet, message);
     if (!sig) return;
+
     setState(prev => ({ ...prev, syncCode: code, wallet, gameStatus: 'connecting' }));
+
     const playerId = `RaceVault_${wallet.slice(-8).toUpperCase()}`;
     setTimeout(async () => {
       try {
@@ -63,6 +65,7 @@ export const GameIntegrationProvider = ({ children }: { children: ReactNode }) =
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code, playerId })
         });
+
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
@@ -107,4 +110,3 @@ export const useGameIntegration = () => {
   if (!ctx) throw new Error('useGameIntegration must be used within GameIntegrationProvider');
   return ctx;
 };
-
